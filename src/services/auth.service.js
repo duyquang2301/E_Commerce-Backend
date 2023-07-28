@@ -16,7 +16,6 @@ const RoleShop = {
 class AuthService {
     static register = async ({ name, email, password }) => {
         //step1: check email exist?
-        a
         const holderShop = await shopModel.findOne({ email }).lean()
         if (holderShop) {
             throw new BadRequestError('Error:Shop already register')
@@ -41,7 +40,6 @@ class AuthService {
             const tokens = await createTokenPair({ userId: newShop._id, email }, publicKey, privateKey)
             console.log(`Created token pair Successfully::::`, tokens)
             return {
-                code: 201,
                 metadata: {
                     shop: getIntoData({ fields: ['_id', 'name', 'email'], object: newShop }),
                     tokens
@@ -49,7 +47,6 @@ class AuthService {
             }
         }
         return {
-            code: 200,
             metadata: null
         }
     }
