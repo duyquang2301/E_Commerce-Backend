@@ -1,33 +1,35 @@
-'use strict';
+const { Schema, mongoose } = require("mongoose");
 
+const DOCUMENT_NAME = 'Key';
+const COLLECTION_NAME = 'Keys';
 
-const { model, Schema, Types } = require('mongoose'); // Erase if already required
-
-const DOCUMENT_NAME = 'Key'
-const COLLECTION_NAME = 'Keys'
-// Declare the Schema of the Mongo model
-var keyTokenSchema = new Schema({
+const keyTokenSchema = new mongoose.Schema({
     user: {
         type: Schema.Types.ObjectId,
-        require: true,
+        trim: true,
         ref: 'Shop'
-    },
-    privateKey: {
-        type: String,
-        required: true,
     },
     publicKey: {
         type: String,
-        required: true,
+        trim: true
     },
-    refreshToken: {
+    privateKey: {
+        type: String,
+        trim: true
+    },
+    refreshTokensUsed: {
         type: Array,
         default: []
+    }
+    ,
+    refreshToken: {
+        type: String,
+        required: true
     }
 }, {
     timestamps: true,
     collection: COLLECTION_NAME
 });
 
-//Export the model
-module.exports = model(DOCUMENT_NAME, keyTokenSchema);
+
+module.exports = mongoose.model(DOCUMENT_NAME, keyTokenSchema)

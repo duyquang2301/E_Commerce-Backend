@@ -1,7 +1,14 @@
-const { CREATED } = require("../core/success.response");
+const { CREATED, SuccessResponse } = require("../core/success.response");
 const authService = require("../services/auth.service");
 
 class AuthController {
+
+    login = async (req, res, next) => {
+        new SuccessResponse({
+            metadata: await authService.login(req.body)
+        }).send(res)
+    }
+
 
     register = async (req, res, next) => {
         new CREATED({

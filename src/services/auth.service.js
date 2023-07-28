@@ -1,10 +1,11 @@
 const shopModel = require("../models/shop.model")
 const bcrypt = require('bcrypt')
 const crypto = require('crypto')
-const keyTokenService = require("./keyToken.service")
+const KeyTokenService = require("./keyToken.service")
 const { createTokenPair } = require("../utils/auth.utils")
 const { getIntoData } = require("../utils")
-const { BadRequestError } = require("../core/error.response")
+const { BadRequestError, AuthFailureError } = require("../core/error.response")
+const { findByEmail } = require("./shop.service")
 
 const RoleShop = {
     SHOP: "SHOP",
@@ -14,6 +15,33 @@ const RoleShop = {
 }
 
 class AuthService {
+
+    static login = async ({ email, password, refreshToken = null }) => {
+        const foundShop = await findByEmail({ email })
+        if (!foundShop) throw new BadRequestError('Shop not registered')
+
+        const match = bcrypt.compare(password, foundShop.password)
+        if (!match) throw new AuthFailureError('Authentication error')
+
+        //generate Tokens
+        const publicKey = crypto.randomBytes(64).toString("hex");
+        const privateKey = crypto.randomBytes(64).toString("hex");
+        const { _id: userId } = foundShop
+        const tokens = await createTokenPair({ userId: userId, email }, publicKey, privateKey)
+
+        await KeyTokenService.createKeyToken({
+            userId: userId,
+            publicKey,
+            privateKey,
+            refreshToken: tokens.refreshToken
+        })
+        return {
+            shop: getIntoData({ fields: ['_id', 'name', 'email'], object: foundShop }),
+            tokens
+        }
+    }
+
+
     static register = async ({ name, email, password }) => {
         //step1: check email exist?
         const holderShop = await shopModel.findOne({ email }).lean()
@@ -27,7 +55,7 @@ class AuthService {
         if (newShop) {
             const publicKey = crypto.randomBytes(64).toString("hex");
             const privateKey = crypto.randomBytes(64).toString("hex");
-            const keyStore = await keyTokenService.createKeyToken({
+            const keyStore = await KeyTokenService.createKeyToken({
                 userId: newShop._id,
                 publicKey,
                 privateKey
