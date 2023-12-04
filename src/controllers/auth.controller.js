@@ -1,7 +1,7 @@
 const { CREATED, SuccessResponse } = require("../core/success.response");
 const authService = require("../services/auth.service");
 
-class AuthController {
+class AuthController { 
 
     logout = async (req, res, next) => {
         new SuccessResponse({
